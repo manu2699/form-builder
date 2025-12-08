@@ -1,5 +1,5 @@
 // API Route Handlers
-import { FormQueries, isDbConnected } from "../db";
+import { FormQueries, isDbConnected } from "@/server/db";
 
 // Health check
 export async function healthHandler() {

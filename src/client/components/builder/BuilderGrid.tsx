@@ -1,10 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+
 import { useDroppable, useDraggable } from '@dnd-kit/core';
-import { useBuilderStore, type FormElement } from '../../store/builderStore';
 import { Trash2, GripVertical } from 'lucide-react';
-import { renderFieldPreview } from '../fields';
-import { getCollaboratorOnElement, onCollaboratorsChange, setSelectedElement as setCollabSelectedElement, type Collaborator } from '../../lib/collaboration';
-import { getUserInitials } from '../../lib/user';
+
+import { renderFieldPreview } from '@/client/components/fields';
+import { getCollaboratorOnElement, onCollaboratorsChange, setSelectedElement as setCollabSelectedElement, type Collaborator } from '@/client/lib/collaboration';
+import { getUserInitials } from '@/client/lib/user';
+import { useBuilderStore, type FormElement } from '@/client/store/builderStore';
 
 interface GridElementProps {
     element: FormElement;

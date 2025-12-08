@@ -1,11 +1,11 @@
 // Server Entry Point
 import { serve } from "bun";
-import index from "../client/index.html";
+import index from "@/client/index.html";
 
 // Modules
-import { initDatabase } from "./db";
-import { healthHandler, formsHandlers, formHandlers } from "./routes";
-import { websocketHandler } from "./ws";
+import { initDatabase } from "@/server/db";
+import { healthHandler, formsHandlers, formHandlers } from "@/server/routes";
+import { websocketHandler } from "@/server/ws";
 
 // Initialize
 await initDatabase();

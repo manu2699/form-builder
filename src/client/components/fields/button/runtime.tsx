@@ -1,6 +1,4 @@
-// Button Field - Runtime (Live Form)
-import React from 'react';
-import type { RuntimeProps } from '../types';
+import type { RuntimeProps } from '@/client/components/fields/types';
 
 export const ButtonRuntime = ({ label = 'Submit' }: RuntimeProps) => (
     <button

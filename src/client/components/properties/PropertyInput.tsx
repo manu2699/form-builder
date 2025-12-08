@@ -1,6 +1,6 @@
 // Property Input Renderers
 import React from 'react';
-import type { PropertyConfig } from '../fields/types';
+import type { PropertyConfig } from '@/client/components/fields/types';
 
 interface PropertyInputProps {
     config: PropertyConfig;

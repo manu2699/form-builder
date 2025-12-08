@@ -1,14 +1,15 @@
 // Collaborator Avatars - Shows connected users
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Users } from 'lucide-react';
+
 import {
     getCollaborators,
     onCollaboratorsChange,
     getCollaboration,
     onCollaborationReady,
     type Collaborator
-} from '../../lib/collaboration';
-import { getUser, getUserInitials } from '../../lib/user';
+} from '@/client/lib/collaboration';
+import { getUser, getUserInitials } from '@/client/lib/user';
 
 export const CollaboratorAvatars = () => {
     const [collaborators, setCollaborators] = useState<Collaborator[]>([]);

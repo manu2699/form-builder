@@ -1,12 +1,14 @@
 // Dynamic Property Panel - Renders based on field's properties.ts config
 import React, { useState } from 'react';
+
 import { ChevronRight, ChevronLeft, Eye } from 'lucide-react';
-import { useBuilderStore } from '../../store/builderStore';
-import { getFieldProperties, getFieldConfig, type FieldType } from '../fields';
-import { Accordion, AccordionItem } from '../ui/Accordion';
-import { PropertyRow } from './PropertyRow';
-import { RuleBuilder } from './RuleBuilder';
-import { groupProperties, sortGroups } from './utils';
+
+import { getFieldProperties, getFieldConfig, type FieldType } from '@/client/components/fields';
+import { Accordion, AccordionItem } from '@/client/components/ui/Accordion';
+import { PropertyRow } from '@/client/components/properties/PropertyRow';
+import { RuleBuilder } from '@/client/components/properties/RuleBuilder';
+import { groupProperties, sortGroups } from '@/client/components/properties/utils';
+import { useBuilderStore } from '@/client/store/builderStore';
 
 export const PropertyPanel = () => {
     const { selectedElementId, elements } = useBuilderStore();

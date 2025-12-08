@@ -1,7 +1,8 @@
 // RuleBuilder - Visual UI for building visibility rules
 import React, { useState } from 'react';
+
 import { Plus, Trash2, ChevronDown, Layers, X, Edit2, Check } from 'lucide-react';
-import { useBuilderStore, type FormElement } from '../../store/builderStore';
+
 import {
     type VisibilityRule,
     type RuleCondition,
@@ -14,7 +15,8 @@ import {
     createEmptyGroup,
     OPERATOR_LABELS,
     VALUE_LESS_OPERATORS,
-} from '../../lib/visibilityRules';
+} from '@/client/lib/visibilityRules';
+import { useBuilderStore, type FormElement } from '@/client/store/builderStore';
 
 interface RuleBuilderProps {
     element: FormElement;

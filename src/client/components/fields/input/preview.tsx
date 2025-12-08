@@ -1,6 +1,4 @@
-// Input Field - Preview (Builder Mode)
-import React from 'react';
-import type { FieldProps } from '../types';
+import type { FieldProps } from '@/client/components/fields/types';
 
 export const InputPreview = ({ placeholder = 'Input field' }: FieldProps) => (
     <input

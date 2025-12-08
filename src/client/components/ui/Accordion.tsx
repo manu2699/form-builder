@@ -1,5 +1,6 @@
 // Accordion Component
 import React, { useState, type ReactNode } from 'react';
+
 import { ChevronDown } from 'lucide-react';
 
 interface AccordionItemProps {

@@ -1,23 +1,24 @@
-import { useParams, Link } from 'react-router-dom';
-import { DndContext, DragOverlay, useSensor, useSensors, MouseSensor, type DragStartEvent, type DragEndEvent, closestCenter } from '@dnd-kit/core';
-
-import { BuilderLayout } from '../components/builder/BuilderLayout';
-import { Toolbar } from '../components/builder/Toolbar';
-import { PropertyPanel } from '../components/properties';
-import { CollaboratorAvatars } from '../components/collaboration';
-
-import { useBuilderStore, type FormElement } from '../store/builderStore';
 import { useEffect, useState, useRef } from 'react';
+
+import { useParams, Link } from 'react-router-dom';
+
+import { DndContext, DragOverlay, useSensor, useSensors, MouseSensor, type DragStartEvent, type DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { Save } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { renderFieldPreview } from '../components/fields';
+
+import { BuilderLayout } from '@/client/components/builder/BuilderLayout';
+import { Toolbar } from '@/client/components/builder/Toolbar';
+import { PropertyPanel } from '@/client/components/properties';
+import { CollaboratorAvatars } from '@/client/components/collaboration';
+import { renderFieldPreview } from '@/client/components/fields';
+import { Button } from '@/client/components/ui/Button';
 import {
     initCollaboration,
     destroyCollaboration,
     onElementsChange,
     syncElementsToYjs,
     getCollaboration
-} from '../lib/collaboration';
+} from '@/client/lib/collaboration';
+import { useBuilderStore, type FormElement } from '@/client/store/builderStore';
 
 export const BuilderPage = () => {
     const { formId } = useParams();

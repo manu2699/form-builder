@@ -1,12 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ReactFlow, Background, Controls, useNodesState, useEdgesState, BackgroundVariant, type Node, type Edge } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
+
 import { useNavigate } from 'react-router-dom';
+
+import { ReactFlow, Background, Controls, useNodesState, useEdgesState, BackgroundVariant, type Node, type Edge } from '@xyflow/react';
 import { FileText, Plus } from 'lucide-react';
 import { nanoid } from 'nanoid';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { CreateFormModal } from '../components/ui/Modal';
+
+import { Button } from '@/client/components/ui/Button';
+import { Card } from '@/client/components/ui/Card';
+import { CreateFormModal } from '@/client/components/ui/Modal';
+
+import '@xyflow/react/dist/style.css';
 
 // Custom Form Node Component
 const FormNode = ({ data }: { data: { label: string; id: string } }) => {

@@ -1,7 +1,9 @@
 import { useState } from 'react';
+
 import { useDraggable } from '@dnd-kit/core';
-import { FIELD_CONFIGS, FIELD_TYPES, type FieldType } from '../fields';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+import { FIELD_CONFIGS, FIELD_TYPES, type FieldType } from '@/client/components/fields';
 
 const DraggableField = ({ type, collapsed }: { type: FieldType; collapsed: boolean }) => {
     const config = FIELD_CONFIGS[type];

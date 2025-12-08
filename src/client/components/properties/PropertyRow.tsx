@@ -1,8 +1,9 @@
 // Property Row Component
 import React from 'react';
-import { PropertyInput } from './PropertyInput';
-import { useBuilderStore, type FormElement } from '../../store/builderStore';
-import type { PropertyConfig } from '../fields/types';
+
+import type { PropertyConfig } from '@/client/components/fields/types';
+import { PropertyInput } from '@/client/components/properties/PropertyInput';
+import { useBuilderStore, type FormElement } from '@/client/store/builderStore';
 
 interface PropertyRowProps {
     config: PropertyConfig;

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { nanoid } from 'nanoid';
-import type { VisibilityRule } from '../lib/visibilityRules';
+import type { VisibilityRule } from '@/client/lib/visibilityRules';
 
 export type FieldType = 'input' | 'number' | 'button';
 

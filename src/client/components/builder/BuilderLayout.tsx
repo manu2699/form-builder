@@ -1,5 +1,4 @@
-import React from 'react';
-import { BuilderGrid } from './BuilderGrid';
+import { BuilderGrid } from '@/client/components/builder/BuilderGrid';
 
 export const BuilderLayout = () => {
     return (

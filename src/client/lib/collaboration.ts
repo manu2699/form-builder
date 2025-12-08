@@ -1,8 +1,8 @@
 // Collaboration - Yjs integration with WebSocket provider
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
-import { getUser, type User } from './user';
-import type { FormElement } from '../store/builderStore';
+import { getUser, type User } from '@/client/lib/user';
+import type { FormElement } from '@/client/store/builderStore';
 
 export interface Collaborator {
     id: string;

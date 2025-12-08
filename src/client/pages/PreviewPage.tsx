@@ -1,10 +1,13 @@
 // Form Preview Page - Live form rendering with visibility rules
-import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
+
+import { useParams, Link } from 'react-router-dom';
+
 import { ArrowLeft, ExternalLink } from 'lucide-react';
-import { renderFieldRuntime, type FieldType } from '../components/fields';
-import { Button } from '../components/ui/Button';
-import { evaluateRulesForElement, type VisibilityRule } from '../lib/visibilityRules';
+
+import { renderFieldRuntime, type FieldType } from '@/client/components/fields';
+import { Button } from '@/client/components/ui/Button';
+import { evaluateRulesForElement, type VisibilityRule } from '@/client/lib/visibilityRules';
 
 interface FormElement {
     id: string;

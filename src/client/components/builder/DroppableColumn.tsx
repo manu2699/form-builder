@@ -1,7 +1,8 @@
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import type { FormColumn } from '../../store/builderStore';
-import { SortableItem } from './SortableItem';
+
+import { SortableItem } from '@/client/components/builder/SortableItem';
+import type { FormColumn } from '@/client/store/builderStore';
 
 interface DroppableColumnProps {
     column: FormColumn;
