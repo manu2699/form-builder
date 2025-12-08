@@ -1,0 +1,35 @@
+{
+  "name": "bun-react-template",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot src/server/index.ts",
+    "start": "NODE_ENV=production bun src/server/index.ts",
+    "build": "bun run build.ts"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@xyflow/react": "^12.10.0",
+    "bun-plugin-tailwind": "^0.1.2",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.556.0",
+    "nanoid": "^5.1.6",
+    "postgres": "^3.4.7",
+    "react": "^19",
+    "react-dom": "^19",
+    "react-router-dom": "^7.10.1",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss": "^4.1.11",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.27",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/bun": "latest"
+  }
+}
