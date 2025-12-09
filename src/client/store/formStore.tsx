@@ -14,11 +14,11 @@ export type FormElement = {
     placeholder?: string;
     required?: boolean;
     colSpan: 1 | 2 | 3;
-    properties: Record<string, any>;
+    properties: Record<string, unknown>;
     visibilityRules?: VisibilityRule[];
 };
 
-interface FormState {
+export interface FormState {
     formId: string;
     elements: FormElement[];
     selectedElementId: string | null;
@@ -29,7 +29,7 @@ interface FormState {
     removeElement: (id: string) => void;
     resizeElement: (id: string, colSpan: 1 | 2 | 3) => void;
     reorderElements: (fromIndex: number, toIndex: number) => void;
-    updateElementProperty: (id: string, key: string, value: any) => void;
+    updateElementProperty: (id: string, key: string, value: unknown) => void;
     setElements: (elements: FormElement[]) => void;
     selectElement: (id: string | null) => void;
     getSelectedElement: () => FormElement | null;
@@ -113,8 +113,8 @@ export const createFormStore = (formId: string, initialElements: FormElement[] =
 };
 
 // Context for the form store
-type FormStoreApi = StoreApi<FormState>;
-const FormStoreContext = createContext<FormStoreApi | null>(null);
+export type FormNodeStoreApi = StoreApi<FormState>;
+const FormStoreContext = createContext<FormNodeStoreApi | null>(null);
 
 // Provider component with autosave
 interface FormStoreProviderProps {
@@ -124,7 +124,7 @@ interface FormStoreProviderProps {
 }
 
 export const FormStoreProvider = ({ formId, initialElements = [], children }: FormStoreProviderProps) => {
-    const storeRef = useRef<FormStoreApi | null>(null);
+    const storeRef = useRef<FormNodeStoreApi | null>(null);
 
     if (!storeRef.current) {
         storeRef.current = createFormStore(formId, initialElements);
@@ -184,7 +184,7 @@ export const useFormStore = <T,>(selector: (state: FormState) => T): T => {
 };
 
 // Hook to get the store API directly (for advanced usage)
-export const useFormStoreApi = (): FormStoreApi => {
+export const useFormStoreApi = (): FormNodeStoreApi => {
     const store = useContext(FormStoreContext);
     if (!store) {
         throw new Error('useFormStoreApi must be used within FormStoreProvider');

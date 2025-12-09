@@ -15,10 +15,10 @@ export const PropertyRow = ({ config, element }: PropertyRowProps) => {
 
     // Get value from element - check top-level first, then properties
     const value = config.key in element
-        ? (element as any)[config.key]
+        ? element[config.key as keyof FormElement]
         : element.properties[config.key];
 
-    const handleChange = (newValue: any) => {
+    const handleChange = (newValue: unknown) => {
         updateElementProperty(element.id, config.key, newValue);
     };
 

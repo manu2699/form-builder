@@ -5,7 +5,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { Eye, GripVertical, Save, Loader2 } from 'lucide-react';
 
 import { FormNodeGrid } from './FormNodeGrid';
-import { FormStoreProvider, useFormStore, useFormStoreApi, type FormElement } from '@/client/store/formStore';
+import { useFormStore, type FormElement } from '@/client/store/formStore';
 
 interface FormNodeProps {
     id: string;
@@ -18,8 +18,7 @@ interface FormNodeProps {
     onPositionChange?: (position: { x: number; y: number }) => void;
 }
 
-// Inner component that uses the form store
-const FormNodeInner = ({
+export const FormNodeWrapper = ({
     id,
     formId,
     title,
@@ -151,22 +150,4 @@ const FormNodeInner = ({
             </div>
         </div>
     );
-};
-
-// Outer component that provides the store context
-export const FormNode = ({ formId, initialElements = [], ...props }: FormNodeProps) => {
-    return (
-        <FormStoreProvider formId={formId} initialElements={initialElements}>
-            <FormNodeInner formId={formId} {...props} />
-        </FormStoreProvider>
-    );
-};
-
-// Hook to expose store actions to parent - must be called within FormStoreProvider
-export const useFormNodeActions = () => {
-    const store = useFormStoreApi();
-    return {
-        addElement: store.getState().addElement,
-        getStore: () => store,
-    };
 };

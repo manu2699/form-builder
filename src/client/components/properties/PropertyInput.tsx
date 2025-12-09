@@ -4,8 +4,8 @@ import type { PropertyConfig } from '@/client/components/fields/types';
 
 interface PropertyInputProps {
     config: PropertyConfig;
-    value: any;
-    onChange: (value: any) => void;
+    value: unknown;
+    onChange: (value: unknown) => void;
 }
 
 export const PropertyInput = ({ config, value, onChange }: PropertyInputProps) => {

@@ -52,14 +52,14 @@ const CanvasPropertyRow = ({
 }: {
     config: PropertyConfig;
     element: FormElement;
-    onPropertyChange: (key: string, value: any) => void;
+    onPropertyChange: (key: string, value: unknown) => void;
 }) => {
     // Get value from element - check top-level first, then properties
     const value = config.key in element
-        ? (element as any)[config.key]
+        ? element[config.key as keyof FormElement]
         : element.properties?.[config.key];
 
-    const handleChange = (newValue: any) => {
+    const handleChange = (newValue: unknown) => {
         onPropertyChange(config.key, newValue);
     };
 
@@ -79,7 +79,6 @@ const CanvasPropertyRow = ({
 export const CanvasPropertyPanel = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [selectedElement, setSelectedElement] = useState<FormElement | null>(null);
-    const [, forceUpdate] = useState({});
 
     // Poll for updates from the active node's store
     // This is simpler than trying to subscribe to an external store
@@ -87,7 +86,8 @@ export const CanvasPropertyPanel = () => {
         const interval = setInterval(() => {
             const store = getActiveNodeStore();
             if (store) {
-                const element = store.getSelectedElement();
+                const state = store.getState();
+                const element = state.getSelectedElement();
                 setSelectedElement(element);
             } else {
                 setSelectedElement(null);
@@ -106,11 +106,10 @@ export const CanvasPropertyPanel = () => {
     const Icon = fieldConfig?.icon;
 
     // Handle property change
-    const handlePropertyChange = (key: string, value: any) => {
+    const handlePropertyChange = (key: string, value: unknown) => {
         const store = getActiveNodeStore();
         if (store && selectedElement) {
-            store.updateElementProperty(selectedElement.id, key, value);
-            forceUpdate({}); // Trigger re-render
+            store.getState().updateElementProperty(selectedElement.id, key, value);
         }
     };
 
@@ -150,7 +149,7 @@ export const CanvasPropertyPanel = () => {
                     {sortedGroups.map(group => (
                         <PanelAccordionItem key={group} title={group}>
                             <div className="space-y-3">
-                                {groupedProperties[group].map(prop => (
+                                {groupedProperties[group]?.map(prop => (
                                     <CanvasPropertyRow
                                         key={prop.key}
                                         config={prop}

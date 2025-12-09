@@ -1,5 +1,5 @@
 // HyperForms Canvas Page - Main canvas-based form builder
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { DndContext, useSensor, useSensors, MouseSensor, type DragEndEvent, type DragStartEvent, DragOverlay, closestCenter } from '@dnd-kit/core';
 import { Save, Plus } from 'lucide-react';
 import { nanoid } from 'nanoid';
@@ -12,7 +12,7 @@ import { CreateFormModal } from '@/client/components/ui/Modal';
 import { FormNodeWithStore } from '@/client/components/form-node/FormNodeWithStore';
 import { CollaboratorAvatars } from '@/client/components/collaboration/CollaboratorAvatars';
 import { initCollaboration, destroyCollaboration, setSelectedNode } from '@/client/lib/collaboration';
-import type { FormElement } from '@/client/store/formStore';
+import type { FormElement, FormNodeStoreApi } from '@/client/store/formStore';
 
 // Type for canvas nodes
 interface CanvasNode {
@@ -23,19 +23,16 @@ interface CanvasNode {
     elements: FormElement[];
 }
 
-// Store interface for node stores
-interface NodeStoreRef {
-    addElement: (type: any) => void;
-    updateElementProperty: (id: string, key: string, value: any) => void;
-    reorderElements: (fromIndex: number, toIndex: number) => void;
-    getElements: () => FormElement[];
-    getSelectedElementId: () => string | null;
-    getSelectedElement: () => FormElement | null;
-    selectElement: (id: string | null) => void;
+// Type for form API response
+interface FormApiResponse {
+    id: string;
+    name: string;
+    layout: string | FormElement[];
+    schema: unknown;
 }
 
-// Map to store refs to each node's store functions
-const nodeStoreRefs = new Map<string, NodeStoreRef>();
+// Map to store refs to each node's store API
+const nodeStoreRefs = new Map<string, FormNodeStoreApi>();
 
 // Currently active node ID (for PropertyPanel to know which store to use)
 let activeNodeId: string | null = null;
@@ -44,12 +41,12 @@ export const setActiveNodeId = (nodeId: string | null) => {
     activeNodeId = nodeId;
 };
 
-export const getActiveNodeStore = (): NodeStoreRef | null => {
+export const getActiveNodeStore = (): FormNodeStoreApi | null => {
     if (!activeNodeId) return null;
     return nodeStoreRefs.get(activeNodeId) || null;
 };
 
-export const registerNodeStore = (nodeId: string, store: NodeStoreRef) => {
+export const registerNodeStore = (nodeId: string, store: FormNodeStoreApi) => {
     nodeStoreRefs.set(nodeId, store);
 };
 
@@ -62,7 +59,7 @@ export const HyperFormsPage = () => {
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [activeDragItem, setActiveDragItem] = useState<any>(null);
+    const [activeDragItem, setActiveDragItem] = useState<{ type: string; label: string } | null>(null);
 
     // DnD Sensors
     const sensors = useSensors(
@@ -71,24 +68,20 @@ export const HyperFormsPage = () => {
         }),
     );
 
-    // Initialize collaboration on mount
+    // Initialize collaboration and load forms on mount
     useEffect(() => {
-        // Use 'canvas' as the shared room for all users
         initCollaboration('canvas');
-        return () => destroyCollaboration();
-    }, []);
-
-    // Load all forms on mount
-    useEffect(() => {
         fetchAllForms();
+        return () => destroyCollaboration();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchAllForms = async () => {
         try {
             const res = await fetch('/api/forms');
-            const forms = await res.json();
+            const forms: FormApiResponse[] = await res.json();
 
-            const newNodes: CanvasNode[] = forms.map((form: any, index: number) => {
+            const newNodes: CanvasNode[] = forms.map((form, index) => {
                 const layoutData = form.layout
                     ? (typeof form.layout === 'string' ? JSON.parse(form.layout) : form.layout)
                     : [];
@@ -106,7 +99,6 @@ export const HyperFormsPage = () => {
         }
     };
 
-    // Handle creating new form
     const handleCreateForm = async (name: string) => {
         try {
             const id = nanoid();
@@ -135,14 +127,12 @@ export const HyperFormsPage = () => {
         }
     };
 
-    // Update node position
     const updateNodePosition = (nodeId: string, position: { x: number; y: number }) => {
         setNodes(prev => prev.map(n =>
             n.id === nodeId ? { ...n, position } : n
         ));
     };
 
-    // Save all forms
     const saveAllForms = async () => {
         setSaving(true);
         try {
@@ -152,7 +142,6 @@ export const HyperFormsPage = () => {
         }
     };
 
-    // Handle drag start
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event;
         if (active.data.current?.type === 'sidebar-item') {
@@ -193,7 +182,7 @@ export const HyperFormsPage = () => {
 
             const nodeStore = nodeStoreRefs.get(nodeId);
             if (nodeStore) {
-                nodeStore.addElement(fieldType);
+                nodeStore.getState().addElement(fieldType);
                 console.log(`✅ Added ${fieldType} to node ${nodeId}`);
             } else {
                 console.log('❌ Node store not found for:', nodeId);
@@ -214,7 +203,7 @@ export const HyperFormsPage = () => {
                 if (fromIndex !== toIndex) {
                     const nodeStore = nodeStoreRefs.get(fromNodeId);
                     if (nodeStore) {
-                        nodeStore.reorderElements(fromIndex, toIndex);
+                        nodeStore.getState().reorderElements(fromIndex, toIndex);
                         console.log(`🔀 Reordered element from ${fromIndex} to ${toIndex} in node ${fromNodeId}`);
                     }
                 }
@@ -271,13 +260,12 @@ export const HyperFormsPage = () => {
 
                 {/* Main canvas area with conditional overlays */}
                 <div className="flex-1 relative overflow-hidden" onClick={handleCanvasClick}>
-
                     {/* Floating Toolbar (left overlay) */}
                     <div
                         className="absolute left-4 top-4 bottom-4 z-10 pointer-events-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="h-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                        <div className="h-max bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                             <Toolbar />
                         </div>
                     </div>
@@ -285,10 +273,10 @@ export const HyperFormsPage = () => {
                     {/* Floating Property Panel (right overlay) - only when node selected */}
                     {selectedNodeId && (
                         <div
-                            className="absolute right-4 top-4 bottom-4 z-10 pointer-events-auto"
+                            className="absolute right-2 top-4 bottom-4 z-10 pointer-events-auto"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="h-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                            <div className="h-[80%] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                                 <CanvasPropertyPanel />
                             </div>
                         </div>

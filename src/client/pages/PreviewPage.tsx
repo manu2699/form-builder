@@ -13,15 +13,15 @@ interface FormElement {
     placeholder?: string;
     required?: boolean;
     colSpan: 1 | 2 | 3;
-    properties: Record<string, any>;
+    properties: Record<string, unknown>;
     visibilityRules?: VisibilityRule[];
 }
 
 interface Form {
     id: string;
     name: string;
-    layout: any;
-    schema: any;
+    layout: string | FormElement[];
+    schema: unknown;
 }
 
 export const PreviewPage = () => {
