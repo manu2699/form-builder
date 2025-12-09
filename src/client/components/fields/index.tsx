@@ -35,13 +35,20 @@ export const FIELD_PROPERTIES: Record<FieldType, PropertyConfig[]> = {
 // All available field types
 export const FIELD_TYPES: FieldType[] = ['input', 'number', 'button'];
 
-// Helper functions
-export const renderFieldPreview = (type: FieldType, props?: FieldProps) => {
+interface FieldPreviewProps extends FieldProps {
+    type: FieldType;
+}
+
+export const FieldPreview: FC<FieldPreviewProps> = ({ type, ...props }) => {
     const Component = PREVIEW_COMPONENTS[type];
     return Component ? <Component {...props} /> : null;
 };
 
-export const renderFieldRuntime = (type: FieldType, props: RuntimeProps) => {
+interface FieldRuntimeProps extends RuntimeProps {
+    type: FieldType;
+}
+
+export const FieldRuntime: FC<FieldRuntimeProps> = ({ type, ...props }) => {
     const Component = RUNTIME_COMPONENTS[type];
     return Component ? <Component {...props} /> : null;
 };

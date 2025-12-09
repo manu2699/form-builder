@@ -9,7 +9,7 @@ import { Toolbar } from '@/client/components/canvas/Toolbar';
 import { CanvasPropertyPanel } from '@/client/components/properties/CanvasPropertyPanel';
 import { Button } from '@/client/components/ui/Button';
 import { CreateFormModal } from '@/client/components/ui/Modal';
-import { FormNodeWithStore } from '@/client/components/form-node/FormNodeWithStore';
+import { FormNodeWithStore } from '@/client/components/form';
 import { CollaboratorAvatars } from '@/client/components/collaboration/CollaboratorAvatars';
 import { initCollaboration, destroyCollaboration, setSelectedNode } from '@/client/lib/collaboration';
 import type { FormElement, FormNodeStoreApi } from '@/client/store/formStore';
@@ -262,7 +262,7 @@ export const HyperFormsPage = () => {
                 <div className="flex-1 relative overflow-hidden" onClick={handleCanvasClick}>
                     {/* Floating Toolbar (left overlay) */}
                     <div
-                        className="absolute left-4 top-4 bottom-4 z-10 pointer-events-auto"
+                        className="absolute left-2 top-2 bottom-4 z-10 pointer-events-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="h-max bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
@@ -273,10 +273,10 @@ export const HyperFormsPage = () => {
                     {/* Floating Property Panel (right overlay) - only when node selected */}
                     {selectedNodeId && (
                         <div
-                            className="absolute right-2 top-4 bottom-4 z-10 pointer-events-auto"
+                            className="absolute right-2 top-2 bottom-4 z-10 pointer-events-auto"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <div className="h-[80%] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                            <div className="h-[90%] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                                 <CanvasPropertyPanel />
                             </div>
                         </div>

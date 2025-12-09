@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
 
-import { renderFieldRuntime, type FieldType } from '@/client/components/fields';
+import { FieldRuntime, type FieldType } from '@/client/components/fields';
 import { Button } from '@/client/components/ui/Button';
 import { evaluateRulesForElement, type VisibilityRule } from '@/client/lib/visibilityRules';
 
@@ -130,12 +130,9 @@ export const PreviewPage = () => {
             {/* Form */}
             <div className="max-w-3xl mx-auto px-6 py-12">
                 <form onSubmit={handleSubmit} className="bg-white border border-gray-200 p-8">
-                    <div
-                        className="grid gap-6"
-                        style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}
-                    >
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-end">
                         {elements.length === 0 ? (
-                            <div className="col-span-3 text-center py-12 text-gray-400">
+                            <div className="col-span-full text-center py-12 text-gray-400">
                                 No fields added to this form yet.
                             </div>
                         ) : (
@@ -150,8 +147,7 @@ export const PreviewPage = () => {
                                 return (
                                     <div
                                         key={element.id}
-                                        style={{ gridColumn: `span ${element.colSpan}` }}
-                                        className={!state.enabled ? 'opacity-50 pointer-events-none' : ''}
+                                        className={`col-span-full lg:col-span-${element.colSpan} ${!state.enabled ? 'opacity-50 pointer-events-none' : ''}`}
                                     >
                                         {element.type !== 'button' && (
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -159,14 +155,16 @@ export const PreviewPage = () => {
                                                 {element.required && <span className="text-red-500 ml-1">*</span>}
                                             </label>
                                         )}
-                                        {renderFieldRuntime(element.type, {
-                                            name: element.id,
-                                            label: element.label,
-                                            placeholder: element.placeholder,
-                                            required: element.required,
-                                            value: formData[element.id] || '',
-                                            onChange: (value) => handleInputChange(element.id, value),
-                                        })}
+                                        <FieldRuntime
+                                            type={element.type}
+                                            name={element.id}
+                                            label={element.label}
+                                            placeholder={element.placeholder}
+                                            required={element.required}
+                                            value={formData[element.id] || ''}
+                                            onChange={(value) => handleInputChange(element.id, value)}
+                                            {...element.properties}
+                                        />
                                     </div>
                                 );
                             })

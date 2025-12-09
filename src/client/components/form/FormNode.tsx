@@ -5,7 +5,8 @@ import { useDroppable } from '@dnd-kit/core';
 import { Eye, GripVertical, Save, Loader2 } from 'lucide-react';
 
 import { FormNodeGrid } from './FormNodeGrid';
-import { useFormStore, type FormElement } from '@/client/store/formStore';
+import { useFormStore } from './FormStoreProvider';
+import type { FormElement } from '@/client/store/formStore';
 
 interface FormNodeProps {
     id: string;
@@ -94,7 +95,7 @@ export const FormNodeWrapper = ({
                 setDropRef(node);
             }}
             className={`
-                absolute bg-white rounded-lg shadow-lg border-2 min-w-[400px] max-w-[500px]
+                absolute bg-white rounded-lg shadow-lg border-2 min-w-[800px] max-w-[1000px]
                 ${isSelected ? 'border-blue-500 shadow-xl' : 'border-gray-200'}
                 ${isDragging ? 'shadow-2xl' : ''}
                 ${isOver ? 'ring-2 ring-blue-400 border-blue-400' : ''}

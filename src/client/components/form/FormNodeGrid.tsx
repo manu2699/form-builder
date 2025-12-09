@@ -3,8 +3,9 @@ import { useState, useRef, useCallback, useEffect, createContext, useContext } f
 import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { Trash2, GripVertical } from 'lucide-react';
 
-import { renderFieldPreview } from '@/client/components/fields';
-import { useFormStore, type FormElement } from '@/client/store/formStore';
+import { FieldPreview } from '@/client/components/fields';
+import { useFormStore } from './FormStoreProvider';
+import type { FormElement } from '@/client/store/formStore';
 import { getCollaboratorOnElement, onCollaboratorsChange, setSelectedElement, type Collaborator } from '@/client/lib/collaboration';
 import { getUserInitials } from '@/client/lib/user';
 
@@ -181,10 +182,18 @@ const GridElement = ({ element, index }: GridElementProps) => {
 
             {/* Element content */}
             <div className="p-4">
-                <label className="block text-xs font-medium text-gray-500 mb-1.5">
-                    {element.label}
-                </label>
-                {renderFieldPreview(element.type, { placeholder: element.placeholder })}
+                {/* Don't show label for button - it becomes the button text */}
+                {element.type !== 'button' && (
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">
+                        {element.label}
+                    </label>
+                )}
+                <FieldPreview
+                    type={element.type}
+                    placeholder={element.placeholder}
+                    label={element.label}
+                    {...element.properties}
+                />
             </div>
 
             {/* Width indicator */}

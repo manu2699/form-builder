@@ -34,6 +34,18 @@ export const buttonProperties: PropertyConfig[] = [
         group: 'Appearance',
     },
     {
+        key: 'size',
+        label: 'Size',
+        type: 'select',
+        options: [
+            { value: 'sm', label: 'Small' },
+            { value: 'md', label: 'Medium' },
+            { value: 'lg', label: 'Large' },
+        ],
+        defaultValue: 'md',
+        group: 'Appearance',
+    },
+    {
         key: 'fullWidth',
         label: 'Full Width',
         type: 'checkbox',

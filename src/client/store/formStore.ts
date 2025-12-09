@@ -1,10 +1,10 @@
-// Per-Form Store Context - Each form node gets its own store instance with autosave
-import { createContext, useContext, useRef, useEffect, type ReactNode } from 'react';
-import { createStore, useStore, type StoreApi } from 'zustand';
+// Form store - Pure Zustand store and types only
+import { createStore, type StoreApi } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { nanoid } from 'nanoid';
 import type { VisibilityRule } from '@/client/lib/visibilityRules';
 
+// Types
 export type FieldType = 'input' | 'number' | 'button';
 
 export type FormElement = {
@@ -22,9 +22,8 @@ export interface FormState {
     formId: string;
     elements: FormElement[];
     selectedElementId: string | null;
-    _lastSavedElements: string; // JSON string for comparison
+    _lastSavedElements: string;
 
-    // Actions
     addElement: (type: FieldType) => void;
     removeElement: (id: string) => void;
     resizeElement: (id: string, colSpan: 1 | 2 | 3) => void;
@@ -36,8 +35,10 @@ export interface FormState {
     markSaved: () => void;
 }
 
-// Create a store for a specific form
-export const createFormStore = (formId: string, initialElements: FormElement[] = []) => {
+export type FormNodeStoreApi = StoreApi<FormState>;
+
+// Store factory
+export const createFormStore = (formId: string, initialElements: FormElement[] = []): FormNodeStoreApi => {
     return createStore<FormState>()(
         subscribeWithSelector((set, get) => ({
             formId,
@@ -45,7 +46,7 @@ export const createFormStore = (formId: string, initialElements: FormElement[] =
             selectedElementId: null,
             _lastSavedElements: JSON.stringify(initialElements),
 
-            addElement: (type) => set((state) => {
+            addElement: (type: FieldType) => set((state) => {
                 const newElement: FormElement = {
                     id: nanoid(),
                     type,
@@ -110,84 +111,4 @@ export const createFormStore = (formId: string, initialElements: FormElement[] =
             })),
         }))
     );
-};
-
-// Context for the form store
-export type FormNodeStoreApi = StoreApi<FormState>;
-const FormStoreContext = createContext<FormNodeStoreApi | null>(null);
-
-// Provider component with autosave
-interface FormStoreProviderProps {
-    formId: string;
-    initialElements?: FormElement[];
-    children: ReactNode;
-}
-
-export const FormStoreProvider = ({ formId, initialElements = [], children }: FormStoreProviderProps) => {
-    const storeRef = useRef<FormNodeStoreApi | null>(null);
-
-    if (!storeRef.current) {
-        storeRef.current = createFormStore(formId, initialElements);
-    }
-
-    // Autosave subscription
-    useEffect(() => {
-        const store = storeRef.current;
-        if (!store) return;
-
-        let saveTimer: NodeJS.Timeout | null = null;
-
-        const saveForm = async () => {
-            const { elements, markSaved } = store.getState();
-            try {
-                await fetch(`/api/forms/${formId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ elements }),
-                });
-                markSaved();
-                console.log(`✅ Auto-saved: ${formId}`);
-            } catch (err) {
-                console.error(`❌ Auto-save failed: ${formId}`, err);
-            }
-        };
-
-        const unsubscribe = store.subscribe((state, prevState) => {
-            const current = JSON.stringify(state.elements);
-            const saved = state._lastSavedElements;
-            if (current === saved) return;
-
-            if (saveTimer) clearTimeout(saveTimer);
-            saveTimer = setTimeout(saveForm, 2000);
-        });
-
-        return () => {
-            unsubscribe();
-            if (saveTimer) clearTimeout(saveTimer);
-        };
-    }, [formId]);
-
-    return (
-        <FormStoreContext.Provider value={storeRef.current}>
-            {children}
-        </FormStoreContext.Provider>
-    );
-};
-
-// Hook to use the form store
-export const useFormStore = <T,>(selector: (state: FormState) => T): T => {
-    const store = useContext(FormStoreContext);
-    if (!store) {
-        throw new Error('useFormStore must be used within FormStoreProvider');
-    }
-    return useStore(store, selector);
-};
-
-// Hook to get the store API directly (for advanced usage)
-export const useFormStoreApi = (): FormNodeStoreApi => {
-    const store = useContext(FormStoreContext);
-    if (!store) {
-        throw new Error('useFormStoreApi must be used within FormStoreProvider');
-    }
-    return store;
 };

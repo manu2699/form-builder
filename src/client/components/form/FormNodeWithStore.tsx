@@ -2,7 +2,8 @@
 import { useEffect } from 'react';
 
 import { FormNodeWrapper } from './FormNode';
-import { FormStoreProvider, useFormStoreApi, type FormElement } from '@/client/store/formStore';
+import { FormStoreProvider, useFormStoreApi } from './FormStoreProvider';
+import type { FormElement } from '@/client/store/formStore';
 import { registerNodeStore, unregisterNodeStore } from '@/client/pages/HyperFormsPage';
 
 interface FormNodeWithStoreProps {
