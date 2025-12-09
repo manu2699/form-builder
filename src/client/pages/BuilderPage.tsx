@@ -1,24 +1,24 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
 
 import { DndContext, DragOverlay, useSensor, useSensors, MouseSensor, type DragStartEvent, type DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { Save } from 'lucide-react';
 
-import { BuilderLayout } from '@/client/components/builder/BuilderLayout';
+import { BuilderGrid } from '@/client/components/builder/BuilderGrid';
 import { Toolbar } from '@/client/components/builder/Toolbar';
 import { PropertyPanel } from '@/client/components/properties';
 import { CollaboratorAvatars } from '@/client/components/collaboration';
-import { renderFieldPreview } from '@/client/components/fields';
+// import { renderFieldPreview } from '@/client/components/fields';
 import { Button } from '@/client/components/ui/Button';
 import {
     initCollaboration,
     destroyCollaboration,
     onElementsChange,
     syncElementsToYjs,
-    getCollaboration
+    // getCollaboration
 } from '@/client/lib/collaboration';
-import { useBuilderStore, type FormElement } from '@/client/store/builderStore';
+import { useBuilderStore, registerAutoSave, unregisterAutoSave, type FormElement } from '@/client/store/builderStore';
 
 export const BuilderPage = () => {
     const { formId } = useParams();
@@ -127,7 +127,7 @@ export const BuilderPage = () => {
             // Listen for remote element changes only
             const unsubscribe = onElementsChange((remoteElements) => {
                 console.log('📥 Received remote elements:', remoteElements.length);
-                setElements(remoteElements);
+                setElements(remoteElements, true); // Mark as remote to skip auto-save
             });
 
             return () => {
@@ -143,60 +143,41 @@ export const BuilderPage = () => {
 
     const fetchForm = async (formId: string) => {
         if (!formId) return;
-        fetch(`/api/forms/${formId}`)
-            .then(res => res.json())
-            .then(form => {
-                setFormName(form.name || formId);
-                if (form.layout) {
-                    const layoutData = typeof form.layout === 'string' ? JSON.parse(form.layout) : form.layout;
-                    setElements(Array.isArray(layoutData) ? layoutData : []);
-                }
-            })
-            .catch(err => console.error("Failed to load form", err));
+        try {
+            const res = await fetch(`/api/forms/${formId}`);
+            const form = await res.json();
+            setFormName(form.name || formId);
+            if (form.layout) {
+                const layoutData = typeof form.layout === 'string' ? JSON.parse(form.layout) : form.layout;
+                const loadedElements = Array.isArray(layoutData) ? layoutData : [];
+                // Pass true to mark this as a remote update (skip auto-save)
+                setElements(loadedElements, true);
+            }
+        } catch (err) {
+            console.error("Failed to load form", err);
+        }
     }
 
-    // Auto-save with debounce (2 seconds after last change)
-    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const prevElementsLengthRef = useRef(0);
-
+    // Keep a ref to current elements so saveForm always has latest
+    const elementsRef = useRef(elements);
     useEffect(() => {
-        // Only auto-save if elements actually changed (not on initial load)
-        if (prevElementsLengthRef.current !== 0 || elements.length > 0) {
-            if (prevElementsLengthRef.current !== elements.length) {
-                prevElementsLengthRef.current = elements.length;
+        elementsRef.current = elements;
+    }, [elements]);
 
-                // Clear existing timeout
-                if (saveTimeoutRef.current) {
-                    clearTimeout(saveTimeoutRef.current);
-                }
-
-                // Set new timeout for auto-save
-                saveTimeoutRef.current = setTimeout(() => {
-                    saveForm();
-                }, 2000);
-            }
-        }
-
-        return () => {
-            if (saveTimeoutRef.current) {
-                clearTimeout(saveTimeoutRef.current);
-            }
-        };
-    }, [elements.length]);
-
-    const saveForm = async () => {
+    const saveForm = useCallback(async () => {
         if (!formId) return;
+        const currentElements = elementsRef.current;
         setSaving(true);
         try {
             // Sync to Yjs first
-            syncElementsToYjs(elements);
+            syncElementsToYjs(currentElements);
 
             // Then save to database
             await fetch(`/api/forms/${formId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    layout: elements,
+                    layout: currentElements,
                     schema: []
                 })
             });
@@ -206,7 +187,13 @@ export const BuilderPage = () => {
         } finally {
             setSaving(false);
         }
-    };
+    }, [formId]);
+
+    // Register saveForm for auto-save triggered by store changes
+    useEffect(() => {
+        registerAutoSave(saveForm);
+        return () => unregisterAutoSave();
+    }, [saveForm]);
 
     return (
         <DndContext
@@ -238,7 +225,9 @@ export const BuilderPage = () => {
                     <Toolbar />
                     <div className="flex-1 overflow-y-auto bg-gray-50 p-8">
                         <div className="max-w-4xl mx-auto">
-                            <BuilderLayout />
+                            <div className="max-w-5xl mx-auto p-4 pb-32">
+                                <BuilderGrid />
+                            </div>
                         </div>
                     </div>
                     <PropertyPanel />

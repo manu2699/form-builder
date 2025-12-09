@@ -21,7 +21,7 @@ export const AccordionItem = ({ title, children, defaultOpen = false }: Accordio
         <div className="border-b border-gray-100 last:border-b-0">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between p-2 text-left hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
             >
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     {title}
@@ -32,7 +32,7 @@ export const AccordionItem = ({ title, children, defaultOpen = false }: Accordio
                 />
             </button>
             {isOpen && (
-                <div className="p-3 pb-4">
+                <div className="p-3 pb-4 px-4">
                     {children}
                 </div>
             )}

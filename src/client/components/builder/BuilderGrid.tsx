@@ -121,12 +121,12 @@ const GridElement = ({ element, index }: GridElementProps) => {
             }}
             onClick={handleClick}
             className={`
-        relative group bg-white border-2 shadow-sm cursor-pointer
+        relative group bg-white border shadow-sm cursor-pointer
         transition-all
-        ${isSelected ? 'border-black ring-2 ring-black/10' : 'border-gray-200 hover:border-gray-400'}
-        ${isResizing ? 'ring-1 ring-black select-none' : ''}
+        ${isSelected ? 'border-gray-400' : 'border-gray-200 hover:border-gray-300'}
+        ${isResizing ? 'ring-1 ring-gray-400 select-none' : ''}
         ${isDragging ? 'opacity-50 ring-1 ring-blue-500' : ''}
-        ${isOver ? 'border-black border-dashed' : ''}
+        ${isOver ? 'border-gray-400 border-dashed' : ''}
       `}
             style={{ gridColumn: `span ${element.colSpan}` }}
         >
@@ -175,9 +175,9 @@ const GridElement = ({ element, index }: GridElementProps) => {
                 <div className="absolute right-0.5 top-1/2 -translate-y-1/2 w-0.5 h-8 bg-gray-300 group-hover:bg-gray-500" />
             </div>
 
-            {/* Element content - no offset needed now */}
+            {/* Element content */}
             <div className="p-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">
                     {element.label}
                 </label>
                 {renderFieldPreview(element.type, { placeholder: element.placeholder })}
