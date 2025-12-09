@@ -1,12 +1,15 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-
+// FormNodeGrid - Grid for form elements inside a FormNode (uses FormStore context)
+import { useState, useRef, useCallback, useEffect, createContext, useContext } from 'react';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { Trash2, GripVertical } from 'lucide-react';
 
 import { renderFieldPreview } from '@/client/components/fields';
-import { getCollaboratorOnElement, onCollaboratorsChange, setSelectedElement as setCollabSelectedElement, type Collaborator } from '@/client/lib/collaboration';
+import { useFormStore, type FormElement } from '@/client/store/formStore';
+import { getCollaboratorOnElement, onCollaboratorsChange, setSelectedElement, type Collaborator } from '@/client/lib/collaboration';
 import { getUserInitials } from '@/client/lib/user';
-import { useBuilderStore, type FormElement } from '@/client/store/builderStore';
+
+// Context to pass nodeId down to DropZone
+const NodeContext = createContext<string>('');
 
 interface GridElementProps {
     element: FormElement;
@@ -14,31 +17,30 @@ interface GridElementProps {
 }
 
 const GridElement = ({ element, index }: GridElementProps) => {
-    const { removeElement, resizeElement, selectElement, selectedElementId } = useBuilderStore();
+    const nodeId = useContext(NodeContext);
+    const removeElement = useFormStore(s => s.removeElement);
+    const resizeElement = useFormStore(s => s.resizeElement);
+    const selectElement = useFormStore(s => s.selectElement);
+    const selectedElementId = useFormStore(s => s.selectedElementId);
+
     const [isResizing, setIsResizing] = useState(false);
+    const [collaboratorOnElement, setCollaboratorOnElement] = useState<Collaborator | null>(null);
     const elementRef = useRef<HTMLDivElement>(null);
     const startXRef = useRef(0);
     const startSpanRef = useRef(element.colSpan);
 
     const isSelected = selectedElementId === element.id;
-    const [collaboratorOnElement, setCollaboratorOnElement] = useState<Collaborator | null>(null);
 
-    // Track collaborator editing this element
+    // Check if another user is editing this element
     useEffect(() => {
-        const updateCollaborator = () => {
-            setCollaboratorOnElement(getCollaboratorOnElement(element.id));
+        const checkCollaborator = () => {
+            const collab = getCollaboratorOnElement(element.id);
+            setCollaboratorOnElement(collab);
         };
-        updateCollaborator();
-        const unsubscribe = onCollaboratorsChange(updateCollaborator);
+        checkCollaborator();
+        const unsubscribe = onCollaboratorsChange(checkCollaborator);
         return unsubscribe;
     }, [element.id]);
-
-    // Notify collaboration when we select this element
-    useEffect(() => {
-        if (isSelected) {
-            setCollabSelectedElement(element.id);
-        }
-    }, [isSelected, element.id]);
 
     // Make element draggable for reordering
     const { attributes, listeners, setNodeRef: setDragRef, isDragging } = useDraggable({
@@ -47,6 +49,7 @@ const GridElement = ({ element, index }: GridElementProps) => {
             type: 'grid-element',
             element,
             index,
+            nodeId,
         }
     });
 
@@ -57,10 +60,11 @@ const GridElement = ({ element, index }: GridElementProps) => {
             type: 'grid-element',
             element,
             index,
+            nodeId,
         }
     });
 
-    // Apply cursor style to body during resize
+    // Apply cursor style during resize
     useEffect(() => {
         if (isResizing) {
             document.body.style.cursor = 'ew-resize';
@@ -69,7 +73,6 @@ const GridElement = ({ element, index }: GridElementProps) => {
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
         }
-
         return () => {
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
@@ -106,11 +109,11 @@ const GridElement = ({ element, index }: GridElementProps) => {
     }, [element.colSpan, element.id, resizeElement]);
 
     const handleClick = (e: React.MouseEvent) => {
-        // Don't select if clicking on delete button or drag handle
         if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('[data-drag-handle]')) {
             return;
         }
         selectElement(element.id);
+        setSelectedElement(element.id); // Broadcast to collaborators
     };
 
     return (
@@ -121,15 +124,28 @@ const GridElement = ({ element, index }: GridElementProps) => {
             }}
             onClick={handleClick}
             className={`
-        relative group bg-white border shadow-sm cursor-pointer
-        transition-all
-        ${isSelected ? 'border-gray-400' : 'border-gray-200 hover:border-gray-300'}
-        ${isResizing ? 'ring-1 ring-gray-400 select-none' : ''}
-        ${isDragging ? 'opacity-50 ring-1 ring-blue-500' : ''}
-        ${isOver ? 'border-gray-400 border-dashed' : ''}
-      `}
-            style={{ gridColumn: `span ${element.colSpan}` }}
+                relative group bg-white border shadow-sm cursor-pointer transition-all
+                ${isSelected ? 'border-gray-400' : 'border-gray-200 hover:border-gray-300'}
+                ${isResizing ? 'ring-1 ring-gray-400 select-none' : ''}
+                ${isDragging ? 'opacity-50 ring-1 ring-blue-500' : ''}
+                ${isOver ? 'border-gray-400 border-dashed' : ''}
+                ${collaboratorOnElement ? 'ring-2' : ''}
+            `}
+            style={{
+                gridColumn: `span ${element.colSpan}`,
+                ...(collaboratorOnElement ? { '--tw-ring-color': collaboratorOnElement.color } as React.CSSProperties : {})
+            }}
         >
+            {/* Collaborator indicator */}
+            {collaboratorOnElement && (
+                <div
+                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-medium text-white border-2 border-white shadow-sm z-20"
+                    style={{ backgroundColor: collaboratorOnElement.color }}
+                    title={`${collaboratorOnElement.name} is editing`}
+                >
+                    {getUserInitials(collaboratorOnElement.name)}
+                </div>
+            )}
             {/* Delete button */}
             <button
                 onClick={() => removeElement(element.id)}
@@ -139,18 +155,7 @@ const GridElement = ({ element, index }: GridElementProps) => {
                 <Trash2 size={14} />
             </button>
 
-            {/* Collaborator indicator - shows who is editing this element */}
-            {collaboratorOnElement && (
-                <div
-                    className="absolute -left-3 -top-3 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium text-white border-2 border-white shadow-md z-20"
-                    style={{ backgroundColor: collaboratorOnElement.color }}
-                    title={`${collaboratorOnElement.name} is editing`}
-                >
-                    {getUserInitials(collaboratorOnElement.name)}
-                </div>
-            )}
-
-            {/* Drag handle - absolute, show on hover */}
+            {/* Drag handle */}
             <div
                 ref={setDragRef}
                 {...listeners}
@@ -161,15 +166,14 @@ const GridElement = ({ element, index }: GridElementProps) => {
                 <GripVertical size={12} className="text-gray-400" />
             </div>
 
-            {/* Resize handle - right edge */}
+            {/* Resize handle */}
             <div
                 onMouseDown={handleResizeStart}
                 className={`
-          absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize
-          opacity-0 group-hover:opacity-100 transition-opacity
-          hover:bg-black/10
-          ${isResizing ? 'opacity-100 bg-black/20' : ''}
-        `}
+                    absolute right-0 top-0 bottom-0 w-2 cursor-ew-resize
+                    opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/10
+                    ${isResizing ? 'opacity-100 bg-black/20' : ''}
+                `}
                 title="Drag to resize"
             >
                 <div className="absolute right-0.5 top-1/2 -translate-y-1/2 w-0.5 h-8 bg-gray-300 group-hover:bg-gray-500" />
@@ -192,49 +196,57 @@ const GridElement = ({ element, index }: GridElementProps) => {
 };
 
 const DropZone = ({ id, isEmpty }: { id: string; isEmpty?: boolean }) => {
+    const nodeId = useContext(NodeContext);
+
     const { setNodeRef, isOver } = useDroppable({
-        id,
-        data: { type: 'grid-cell' }
+        id: `${nodeId}-${id}`,
+        data: { type: 'drop-zone', nodeId }
     });
 
     return (
         <div
             ref={setNodeRef}
             className={`
-        min-h-[120px] border-2 border-dashed flex items-center justify-center text-sm transition-all
-        ${isEmpty ? 'col-span-3 border-gray-300' : 'col-span-1 border-gray-200'}
-        ${isOver ? 'border-black bg-gray-50 text-gray-600' : 'text-gray-400'}
-      `}
+                min-h-[80px] border-2 border-dashed flex items-center justify-center text-sm transition-all
+                ${isEmpty ? 'col-span-3 border-gray-300' : 'col-span-1 border-gray-200'}
+                ${isOver ? 'border-blue-400 bg-blue-50 text-blue-600' : 'text-gray-400'}
+            `}
         >
-            {isEmpty ? 'Drop elements here' : '+'}
+            {isEmpty ? 'Drop fields here' : '+'}
         </div>
     );
 };
 
-export const BuilderGrid = () => {
-    const { elements } = useBuilderStore();
+interface FormNodeGridProps {
+    nodeId: string;
+}
+
+export const FormNodeGrid = ({ nodeId }: FormNodeGridProps) => {
+    const elements = useFormStore(s => s.elements);
 
     return (
-        <div className="w-full">
-            <div
-                className="w-full bg-white border border-gray-200 p-4"
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '1rem',
-                }}
-            >
-                {elements.length === 0 ? (
-                    <DropZone id="empty-zone" isEmpty />
-                ) : (
-                    <>
-                        {elements.map((element, index) => (
-                            <GridElement key={element.id} element={element} index={index} />
-                        ))}
-                        <DropZone id="add-zone" />
-                    </>
-                )}
+        <NodeContext.Provider value={nodeId}>
+            <div className="w-full">
+                <div
+                    className="w-full bg-white p-3"
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '0.75rem',
+                    }}
+                >
+                    {elements.length === 0 ? (
+                        <DropZone id="empty-zone" isEmpty />
+                    ) : (
+                        <>
+                            {elements.map((element, index) => (
+                                <GridElement key={element.id} element={element} index={index} />
+                            ))}
+                            <DropZone id="add-zone" />
+                        </>
+                    )}
+                </div>
             </div>
-        </div>
+        </NodeContext.Provider>
     );
 };

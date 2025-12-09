@@ -1,9 +1,6 @@
-// Form Preview Page - Live form rendering with visibility rules
 import { useEffect, useState, useMemo } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
-
-import { ArrowLeft, ExternalLink } from 'lucide-react';
 
 import { renderFieldRuntime, type FieldType } from '@/client/components/fields';
 import { Button } from '@/client/components/ui/Button';
@@ -122,18 +119,9 @@ export const PreviewPage = () => {
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link
-                            to={`/builder/${formId}`}
-                            className="text-gray-500 hover:text-black transition-colors flex items-center gap-1"
-                        >
-                            <ArrowLeft size={16} />
-                            <span className="text-sm">Edit</span>
-                        </Link>
-                        <div className="h-5 w-px bg-gray-200"></div>
                         <h1 className="font-bold text-lg">{form.name}</h1>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-400">
-                        <ExternalLink size={12} />
                         Preview Mode
                     </div>
                 </div>
@@ -149,10 +137,6 @@ export const PreviewPage = () => {
                         {elements.length === 0 ? (
                             <div className="col-span-3 text-center py-12 text-gray-400">
                                 No fields added to this form yet.
-                                <br />
-                                <Link to={`/builder/${formId}`} className="text-black hover:underline mt-2 inline-block">
-                                    Add fields in the builder →
-                                </Link>
                             </div>
                         ) : (
                             elements.map((element) => {

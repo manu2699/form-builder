@@ -9,6 +9,8 @@ export interface Collaborator {
     name: string;
     color: string;
     selectedElementId?: string | null;
+    selectedNodeId?: string | null;
+    selectedFormName?: string | null;
 }
 
 export interface CollaborationState {
@@ -46,6 +48,8 @@ export function initCollaboration(formId: string): CollaborationState {
         name: user.name,
         color: user.color,
         selectedElementId: null,
+        selectedNodeId: null,
+        selectedFormName: null,
     });
 
     // Get shared elements array
@@ -90,12 +94,23 @@ export function destroyCollaboration(): void {
     }
 }
 
-// Update local user's selected element
 export function setSelectedElement(elementId: string | null): void {
     if (!collaborationState) return;
+    const currentUser = collaborationState.awareness.getLocalState()?.user || {};
     collaborationState.awareness.setLocalStateField('user', {
-        ...collaborationState.user,
+        ...currentUser,
         selectedElementId: elementId,
+    });
+}
+
+// Update local user's selected node (form)
+export function setSelectedNode(nodeId: string | null, formName?: string | null): void {
+    if (!collaborationState) return;
+    const currentUser = collaborationState.awareness.getLocalState()?.user || {};
+    collaborationState.awareness.setLocalStateField('user', {
+        ...currentUser,
+        selectedNodeId: nodeId,
+        selectedFormName: formName ?? null,
     });
 }
 
@@ -113,6 +128,8 @@ export function getCollaborators(): Collaborator[] {
                 name: state.user.name,
                 color: state.user.color,
                 selectedElementId: state.user.selectedElementId,
+                selectedNodeId: state.user.selectedNodeId,
+                selectedFormName: state.user.selectedFormName,
             });
         }
     });
