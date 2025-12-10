@@ -1,9 +1,26 @@
-// Button Field - Preview (Builder Mode)
-import React from 'react';
-import type { FieldProps } from '../types';
+import type { FieldProps } from '@/client/components/fields/types';
+import { Button } from '@/client/components/ui/Button';
 
-export const ButtonPreview = ({ label = 'Button' }: FieldProps) => (
-    <button disabled className="px-4 py-2 bg-black text-white">
-        {label}
-    </button>
+type ButtonVariant = 'primary' | 'secondary' | 'outline';
+type ButtonSize = 'sm' | 'md' | 'lg';
+
+export const ButtonPreview = ({
+    label = 'Submit',
+    variant = 'primary',
+    size = 'md',
+    fullWidth = false,
+}: FieldProps & {
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    fullWidth?: boolean;
+}) => (
+    <div className="pt-5"> {/* Align with input fields that have labels */}
+        <Button
+            variant={variant as ButtonVariant}
+            size={size as ButtonSize}
+            className={`pointer-events-none ${fullWidth ? 'w-full' : ''}`}
+        >
+            {label}
+        </Button>
+    </div>
 );

@@ -1,8 +1,8 @@
-// Button Field - Barrel Export
 import { Square } from 'lucide-react';
-export { ButtonPreview } from './preview';
-export { ButtonRuntime } from './runtime';
-export { buttonProperties } from './properties';
+
+export { ButtonPreview } from '@/client/components/fields/button/preview';
+export { ButtonRuntime } from '@/client/components/fields/button/runtime';
+export { buttonProperties } from '@/client/components/fields/button/properties';
 
 export const buttonConfig = {
     type: 'button' as const,

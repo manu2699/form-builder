@@ -1,5 +1,4 @@
-// Button Field - Properties Configuration
-import type { PropertyConfig } from '../types';
+import type { PropertyConfig } from '@/client/components/fields/types';
 
 export const buttonProperties: PropertyConfig[] = [
     {
@@ -32,6 +31,18 @@ export const buttonProperties: PropertyConfig[] = [
             { value: 'outline', label: 'Outline' },
         ],
         defaultValue: 'primary',
+        group: 'Appearance',
+    },
+    {
+        key: 'size',
+        label: 'Size',
+        type: 'select',
+        options: [
+            { value: 'sm', label: 'Small' },
+            { value: 'md', label: 'Medium' },
+            { value: 'lg', label: 'Large' },
+        ],
+        defaultValue: 'md',
         group: 'Appearance',
     },
     {

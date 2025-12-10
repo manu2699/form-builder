@@ -5,9 +5,11 @@
  * It is included in `src/index.html`.
  */
 
-import "./index.css";
 import { createRoot } from "react-dom/client";
-import { App } from "./App";
+
+import { App } from "@/client/App";
+
+import "@/client/index.css";
 
 function start() {
   const root = createRoot(document.getElementById("root")!);

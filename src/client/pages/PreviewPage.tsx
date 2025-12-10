@@ -1,10 +1,10 @@
-// Form Preview Page - Live form rendering with visibility rules
-import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
-import { renderFieldRuntime, type FieldType } from '../components/fields';
-import { Button } from '../components/ui/Button';
-import { evaluateRulesForElement, type VisibilityRule } from '../lib/visibilityRules';
+
+import { useParams, Link } from 'react-router-dom';
+
+import { FieldRuntime, type FieldType } from '@/client/components/fields';
+import { Button } from '@/client/components/ui/Button';
+import { evaluateRulesForElement, type VisibilityRule } from '@/client/lib/visibilityRules';
 
 interface FormElement {
     id: string;
@@ -13,15 +13,15 @@ interface FormElement {
     placeholder?: string;
     required?: boolean;
     colSpan: 1 | 2 | 3;
-    properties: Record<string, any>;
+    properties: Record<string, unknown>;
     visibilityRules?: VisibilityRule[];
 }
 
 interface Form {
     id: string;
     name: string;
-    layout: any;
-    schema: any;
+    layout: string | FormElement[];
+    schema: unknown;
 }
 
 export const PreviewPage = () => {
@@ -119,18 +119,9 @@ export const PreviewPage = () => {
             <div className="bg-white border-b border-gray-200">
                 <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link
-                            to={`/builder/${formId}`}
-                            className="text-gray-500 hover:text-black transition-colors flex items-center gap-1"
-                        >
-                            <ArrowLeft size={16} />
-                            <span className="text-sm">Edit</span>
-                        </Link>
-                        <div className="h-5 w-px bg-gray-200"></div>
                         <h1 className="font-bold text-lg">{form.name}</h1>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-400">
-                        <ExternalLink size={12} />
                         Preview Mode
                     </div>
                 </div>
@@ -139,17 +130,10 @@ export const PreviewPage = () => {
             {/* Form */}
             <div className="max-w-3xl mx-auto px-6 py-12">
                 <form onSubmit={handleSubmit} className="bg-white border border-gray-200 p-8">
-                    <div
-                        className="grid gap-6"
-                        style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}
-                    >
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-end">
                         {elements.length === 0 ? (
-                            <div className="col-span-3 text-center py-12 text-gray-400">
+                            <div className="col-span-full text-center py-12 text-gray-400">
                                 No fields added to this form yet.
-                                <br />
-                                <Link to={`/builder/${formId}`} className="text-black hover:underline mt-2 inline-block">
-                                    Add fields in the builder →
-                                </Link>
                             </div>
                         ) : (
                             elements.map((element) => {
@@ -163,8 +147,7 @@ export const PreviewPage = () => {
                                 return (
                                     <div
                                         key={element.id}
-                                        style={{ gridColumn: `span ${element.colSpan}` }}
-                                        className={!state.enabled ? 'opacity-50 pointer-events-none' : ''}
+                                        className={`col-span-full lg:col-span-${element.colSpan} ${!state.enabled ? 'opacity-50 pointer-events-none' : ''}`}
                                     >
                                         {element.type !== 'button' && (
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -172,14 +155,16 @@ export const PreviewPage = () => {
                                                 {element.required && <span className="text-red-500 ml-1">*</span>}
                                             </label>
                                         )}
-                                        {renderFieldRuntime(element.type, {
-                                            name: element.id,
-                                            label: element.label,
-                                            placeholder: element.placeholder,
-                                            required: element.required,
-                                            value: formData[element.id] || '',
-                                            onChange: (value) => handleInputChange(element.id, value),
-                                        })}
+                                        <FieldRuntime
+                                            type={element.type}
+                                            name={element.id}
+                                            label={element.label}
+                                            placeholder={element.placeholder}
+                                            required={element.required}
+                                            value={formData[element.id] || ''}
+                                            onChange={(value) => handleInputChange(element.id, value)}
+                                            {...element.properties}
+                                        />
                                     </div>
                                 );
                             })

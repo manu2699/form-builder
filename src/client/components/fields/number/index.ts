@@ -1,8 +1,8 @@
-// Number Field - Barrel Export
 import { Hash } from 'lucide-react';
-export { NumberPreview } from './preview';
-export { NumberRuntime } from './runtime';
-export { numberProperties } from './properties';
+
+export { NumberPreview } from '@/client/components/fields/number/preview';
+export { NumberRuntime } from '@/client/components/fields/number/runtime';
+export { numberProperties } from '@/client/components/fields/number/properties';
 
 export const numberConfig = {
     type: 'number' as const,

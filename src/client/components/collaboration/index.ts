@@ -1,2 +1,2 @@
 // Collaboration components barrel export
-export { CollaboratorAvatars } from './CollaboratorAvatars';
+export { CollaboratorAvatars } from '@/client/components/collaboration/CollaboratorAvatars';

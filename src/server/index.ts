@@ -1,17 +1,22 @@
 // Server Entry Point
 import { serve } from "bun";
-import index from "../client/index.html";
 
 // Modules
-import { initDatabase } from "./db";
-import { healthHandler, formsHandlers, formHandlers } from "./routes";
-import { websocketHandler } from "./ws";
+import { initDatabase } from "@/server/db";
+import { healthHandler, formsHandlers, formHandlers } from "@/server/routes";
+import { websocketHandler } from "@/server/ws";
+
+const index = process.env.NODE_ENV === 'production'
+  ? Bun.file('./dist/index.html')
+  : (await import('@/client/index.html')).default;
 
 // Initialize
 await initDatabase();
 
 // Server
 const server = serve({
+  port: process.env.PORT || 3000,
+  hostname: '0.0.0.0',
   routes: {
     "/api/health": {
       GET: healthHandler,

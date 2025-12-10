@@ -31,7 +31,7 @@ export async function initDatabase(): Promise<boolean> {
         console.log("✅ Connected to Postgres");
         return true;
     } catch (e) {
-        console.warn("⚠️ Failed to connect to Postgres. Using In-Memory Storage.");
+        console.warn("⚠️ Failed to connect to Postgres. Using In-Memory Storage.", e);
         dbConnected = false;
         return false;
     }

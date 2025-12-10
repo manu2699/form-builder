@@ -1,7 +1,7 @@
-// RuleBuilder - Visual UI for building visibility rules
-import React, { useState } from 'react';
+import { useState } from 'react';
+
 import { Plus, Trash2, ChevronDown, Layers, X, Edit2, Check } from 'lucide-react';
-import { useBuilderStore, type FormElement } from '../../store/builderStore';
+
 import {
     type VisibilityRule,
     type RuleCondition,
@@ -14,13 +14,22 @@ import {
     createEmptyGroup,
     OPERATOR_LABELS,
     VALUE_LESS_OPERATORS,
-} from '../../lib/visibilityRules';
+} from '@/client/lib/visibilityRules';
+
+interface FormElement {
+    id: string;
+    type: string;
+    label: string;
+    visibilityRules?: VisibilityRule[];
+    [key: string]: unknown;
+}
 
 interface RuleBuilderProps {
     element: FormElement;
+    allElements: FormElement[];
+    onUpdate: (key: string, value: unknown) => void;
 }
 
-// Condition popup editor - inline (not absolute) to avoid overflow issues
 const ConditionPopup = ({
     condition,
     availableFields,
@@ -396,15 +405,14 @@ const countConditions = (group: RuleGroup): number => {
 };
 
 // Main RuleBuilder component
-export const RuleBuilder = ({ element }: RuleBuilderProps) => {
-    const { elements, updateElementProperty } = useBuilderStore();
+export const RuleBuilder = ({ element, allElements, onUpdate }: RuleBuilderProps) => {
     const rules = element.visibilityRules ?? [];
 
     // Get all fields except current one for conditions
-    const availableFields = elements.filter((e) => e.id !== element.id && e.type !== 'button');
+    const availableFields = allElements.filter((e) => e.id !== element.id && e.type !== 'button');
 
     const updateRules = (newRules: VisibilityRule[]) => {
-        updateElementProperty(element.id, 'visibilityRules', newRules);
+        onUpdate('visibilityRules', newRules);
     };
 
     const addRule = () => {

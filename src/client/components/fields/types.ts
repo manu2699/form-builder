@@ -28,12 +28,12 @@ export type PropertyType =
 
 // Property configuration for property panel
 export interface PropertyConfig {
-    key: string;           // Property key in element data
-    label: string;         // Display label
-    type: PropertyType;    // Input type to render
-    placeholder?: string;  // Placeholder text
+    key: string;         
+    label: string;    
+    type: PropertyType;  
+    placeholder?: string;
     options?: { value: string; label: string }[];  // For select type
-    defaultValue?: any;    // Default value
+    defaultValue?: any;
     min?: number;          // For number type
     max?: number;          // For number type
     step?: number;         // For number type

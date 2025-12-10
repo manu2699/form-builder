@@ -1,5 +1,5 @@
 // Utility functions for property panel
-import type { PropertyConfig } from '../fields/types';
+import type { PropertyConfig } from '@/client/components/fields/types';
 
 // Group properties by group name
 export const groupProperties = (properties: PropertyConfig[]): Record<string, PropertyConfig[]> => {

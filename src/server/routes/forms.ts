@@ -1,7 +1,6 @@
 // API Route Handlers
-import { FormQueries, isDbConnected } from "../db";
+import { FormQueries, isDbConnected } from "@/server/db";
 
-// Health check
 export async function healthHandler() {
     return Response.json({
         status: "ok",
@@ -10,7 +9,6 @@ export async function healthHandler() {
     });
 }
 
-// Forms handlers
 export const formsHandlers = {
     async getAll() {
         try {
@@ -40,7 +38,6 @@ export const formsHandlers = {
     },
 };
 
-// Single form handlers
 export const formHandlers = {
     async get(req: Request & { params: { id: string } }) {
         try {
@@ -58,7 +55,10 @@ export const formHandlers = {
     async update(req: Request & { params: { id: string } }) {
         try {
             const body = await req.json();
-            const { layout, schema } = body;
+            const layout = body.elements ?? body.layout ?? [];
+            const schema = body.schema ?? [];
+
+            console.log(`📝 Updating form ${req.params.id} with ${layout.length} elements`);
 
             const form = await FormQueries.update(req.params.id, layout, schema);
             if (!form) {

@@ -1,5 +1,4 @@
-// Number Field - Properties Configuration
-import type { PropertyConfig } from '../types';
+import type { PropertyConfig } from '@/client/components/fields/types';
 
 export const numberProperties: PropertyConfig[] = [
     {

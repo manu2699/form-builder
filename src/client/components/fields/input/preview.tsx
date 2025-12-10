@@ -1,12 +1,12 @@
-// Input Field - Preview (Builder Mode)
-import React from 'react';
-import type { FieldProps } from '../types';
+import { Input } from '@/client/components/ui/Input';
+import type { FieldProps } from '@/client/components/fields/types';
 
-export const InputPreview = ({ placeholder = 'Input field' }: FieldProps) => (
-    <input
+export const InputPreview = ({ placeholder = 'Enter text...', name, required }: FieldProps) => (
+    <Input
         type="text"
-        disabled
-        className="w-full px-3 py-2 border border-gray-300 bg-gray-50"
+        name={name}
+        required={required}
         placeholder={placeholder}
+        disabled
     />
 );

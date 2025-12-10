@@ -1,5 +1,4 @@
-// Properties module barrel export
-export { PropertyPanel } from './PropertyPanel';
-export { PropertyInput } from './PropertyInput';
-export { PropertyRow } from './PropertyRow';
-export * from './utils';
+// Properties components barrel export
+export { PropertyPanel } from '@/client/components/properties/PropertyPanel';
+export { RuleBuilder } from '@/client/components/properties/RuleBuilder';
+export { PropertyInput } from '@/client/components/properties/PropertyInput';

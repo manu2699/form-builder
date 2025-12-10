@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from "react";
+
 import { X } from "lucide-react";
-import { Button } from "./Button";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+
+import { Button } from "@/client/components/ui/Button";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
