@@ -1,6 +1,9 @@
 import postgres from "postgres";
 
-const sql = postgres(process.env.DATABASE_URL || "postgres://localhost/formbuilder");
+const isProduction = process.env.NODE_ENV === 'production';
+const sql = postgres(process.env.DATABASE_URL || "postgres://localhost/formbuilder", {
+    ssl: isProduction ? 'require' : false,
+});
 
 // In-Memory Fallback
 const inMemoryForms = new Map<string, Form>();
