@@ -1,10 +1,9 @@
-// FormNodeWithStore - FormNode wrapper that registers its store actions to parent
 import { useEffect } from 'react';
 
 import { FormNodeWrapper } from './FormNode';
 import { FormStoreProvider, useFormStoreApi } from './FormStoreProvider';
 import type { FormElement } from '@/client/store/formStore';
-import { registerNodeStore, unregisterNodeStore } from '@/client/pages/HyperFormsPage';
+import { useCanvasStore } from '@/client/store/canvasStore';
 
 interface FormNodeWithStoreProps {
     id: string;
@@ -17,13 +16,12 @@ interface FormNodeWithStoreProps {
     onPositionChange?: (position: { x: number; y: number }) => void;
 }
 
-// Inner component that registers the store
 const StoreRegistrar = ({ nodeId }: { nodeId: string }) => {
     const store = useFormStoreApi();
 
     useEffect(() => {
-        registerNodeStore(nodeId, store);
-        return () => unregisterNodeStore(nodeId);
+        useCanvasStore.getState().registerNodeStore(nodeId, store);
+        return () => useCanvasStore.getState().unregisterNodeStore(nodeId);
     }, [nodeId, store]);
 
     return null;
@@ -37,4 +35,3 @@ export const FormNodeWithStore = ({ id, formId, initialElements = [], ...props }
         </FormStoreProvider>
     );
 };
-

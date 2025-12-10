@@ -4,15 +4,16 @@ import { DndContext, useSensor, useSensors, MouseSensor, type DragEndEvent, type
 import { Save, Plus } from 'lucide-react';
 import { nanoid } from 'nanoid';
 
-import { Canvas } from '@/client/components/canvas';
+import { Canvas } from '@/client/components/canvas/Canvas';
 import { Toolbar } from '@/client/components/canvas/Toolbar';
-import { CanvasPropertyPanel } from '@/client/components/properties/CanvasPropertyPanel';
+import { PropertyPanel } from '@/client/components/properties/index';
 import { Button } from '@/client/components/ui/Button';
 import { CreateFormModal } from '@/client/components/ui/Modal';
 import { FormNodeWithStore } from '@/client/components/form';
 import { CollaboratorAvatars } from '@/client/components/collaboration/CollaboratorAvatars';
 import { initCollaboration, destroyCollaboration, setSelectedNode } from '@/client/lib/collaboration';
-import type { FormElement, FormNodeStoreApi } from '@/client/store/formStore';
+import { useCanvasStore } from '@/client/store/canvasStore';
+import type { FormElement } from '@/client/store/formStore';
 
 // Type for canvas nodes
 interface CanvasNode {
@@ -30,29 +31,6 @@ interface FormApiResponse {
     layout: string | FormElement[];
     schema: unknown;
 }
-
-// Map to store refs to each node's store API
-const nodeStoreRefs = new Map<string, FormNodeStoreApi>();
-
-// Currently active node ID (for PropertyPanel to know which store to use)
-let activeNodeId: string | null = null;
-
-export const setActiveNodeId = (nodeId: string | null) => {
-    activeNodeId = nodeId;
-};
-
-export const getActiveNodeStore = (): FormNodeStoreApi | null => {
-    if (!activeNodeId) return null;
-    return nodeStoreRefs.get(activeNodeId) || null;
-};
-
-export const registerNodeStore = (nodeId: string, store: FormNodeStoreApi) => {
-    nodeStoreRefs.set(nodeId, store);
-};
-
-export const unregisterNodeStore = (nodeId: string) => {
-    nodeStoreRefs.delete(nodeId);
-};
 
 export const HyperFormsPage = () => {
     const [nodes, setNodes] = useState<CanvasNode[]>([]);
@@ -152,25 +130,14 @@ export const HyperFormsPage = () => {
         }
     };
 
-    // Handle drag end - add element to the target form node
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         setActiveDragItem(null);
 
-        console.log('🎯 DragEnd:', { over: over?.id, overData: over?.data.current });
-        console.log('📋 Registered nodes:', Array.from(nodeStoreRefs.keys()));
-
-        if (!over) {
-            console.log('❌ No drop target');
-            return;
-        }
+        if (!over) return;
 
         const activeData = active.data.current;
         const overData = over.data.current;
-
-        console.log('📦 activeData.type =', activeData?.type, ', overData.type =', overData?.type);
-        console.log('📦 Full overData:', JSON.stringify(overData));
-
         const isValidDropTarget = overData?.type === 'form-node' || overData?.type === 'drop-zone';
 
         // Handle sidebar item drops onto form nodes
@@ -178,14 +145,10 @@ export const HyperFormsPage = () => {
             const nodeId = overData.nodeId;
             const fieldType = activeData.payload.type;
 
-            console.log('🔍 Looking for nodeId:', nodeId);
-
-            const nodeStore = nodeStoreRefs.get(nodeId);
+            const nodeStore = useCanvasStore.getState().getNodeStore(nodeId);
             if (nodeStore) {
                 nodeStore.getState().addElement(fieldType);
                 console.log(`✅ Added ${fieldType} to node ${nodeId}`);
-            } else {
-                console.log('❌ Node store not found for:', nodeId);
             }
             return;
         }
@@ -195,29 +158,24 @@ export const HyperFormsPage = () => {
             const fromNodeId = activeData.nodeId;
             const toNodeId = overData.nodeId;
 
-            // Only reorder within the same node
             if (fromNodeId === toNodeId) {
                 const fromIndex = activeData.index;
                 const toIndex = overData.index;
 
                 if (fromIndex !== toIndex) {
-                    const nodeStore = nodeStoreRefs.get(fromNodeId);
+                    const nodeStore = useCanvasStore.getState().getNodeStore(fromNodeId);
                     if (nodeStore) {
                         nodeStore.getState().reorderElements(fromIndex, toIndex);
-                        console.log(`🔀 Reordered element from ${fromIndex} to ${toIndex} in node ${fromNodeId}`);
                     }
                 }
             }
             return;
         }
-
-        console.log('⚠️ Drop did not match any conditions');
     };
 
     // Sync activeNodeId with selectedNodeId for PropertyPanel access
     useEffect(() => {
-        setActiveNodeId(selectedNodeId);
-        // Also update collaboration awareness with selected form name
+        useCanvasStore.getState().setActiveNodeId(selectedNodeId);
         const node = nodes.find(n => n.id === selectedNodeId);
         setSelectedNode(selectedNodeId, node?.title ?? null);
     }, [selectedNodeId, nodes]);
@@ -225,7 +183,7 @@ export const HyperFormsPage = () => {
     // Deselect when clicking on canvas background
     const handleCanvasClick = () => {
         setSelectedNodeId(null);
-        setActiveNodeId(null);
+        useCanvasStore.getState().setActiveNodeId(null);
         setSelectedNode(null, null);
     };
 
@@ -245,7 +203,6 @@ export const HyperFormsPage = () => {
                         </h1>
                     </div>
                     <div className="flex items-center gap-4">
-                        {/* Collaborator Avatars */}
                         <CollaboratorAvatars />
                         <Button variant="outline" size="sm" onClick={() => setIsCreateModalOpen(true)} className="gap-2">
                             <Plus size={16} />
@@ -277,7 +234,7 @@ export const HyperFormsPage = () => {
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="h-[90%] bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                                <CanvasPropertyPanel />
+                                <PropertyPanel />
                             </div>
                         </div>
                     )}

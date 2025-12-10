@@ -1,45 +1,71 @@
-// Dynamic Property Panel - Renders based on field's properties.ts config
-import React, { useState } from 'react';
-
-import { ChevronRight, ChevronLeft, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 
 import { getFieldProperties, getFieldConfig, type FieldType } from '@/client/components/fields';
-import { Accordion, AccordionItem } from '@/client/components/ui/Accordion';
-import { PropertyRow } from '@/client/components/properties/PropertyRow';
-import { RuleBuilder } from '@/client/components/properties/RuleBuilder';
+import { PropertyInput } from '@/client/components/properties/PropertyInput';
 import { groupProperties, sortGroups } from '@/client/components/properties/utils';
-import { useBuilderStore } from '@/client/store/builderStore';
+import { RuleBuilder } from '@/client/components/properties/RuleBuilder';
+import { AccordionItem } from '@/client/components/ui/Accordion';
+import { useCanvasStore } from '@/client/store/canvasStore';
+import type { FormElement } from '@/client/store/formStore';
+import type { PropertyConfig } from '@/client/components/fields/types';
 
 export const PropertyPanel = () => {
-    const { selectedElementId, elements } = useBuilderStore();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [selectedElement, setSelectedElement] = useState<FormElement | null>(null);
+    const [allElements, setAllElements] = useState<FormElement[]>([]);
 
-    const selectedElement = elements.find(e => e.id === selectedElementId);
+    const getActiveNodeStore = useCanvasStore(state => state.getActiveNodeStore);
+    const activeNodeId = useCanvasStore(state => state.activeNodeId);
 
-    // Always render panel, but show collapsed state when no element selected
+    useEffect(() => {
+        const activeStore = getActiveNodeStore();
+        if (!activeStore) {
+            setSelectedElement(null);
+            setAllElements([]);
+            return;
+        }
+
+        const state = activeStore.getState();
+        setSelectedElement(state.getSelectedElement());
+        setAllElements(state.elements);
+
+        const unsubscribe = activeStore.subscribe((newState) => {
+            setSelectedElement(newState.getSelectedElement());
+            setAllElements(newState.elements);
+        });
+
+        return unsubscribe;
+    }, [activeNodeId, getActiveNodeStore]);
+
     const hasSelection = !!selectedElement;
 
-    // Get field config if element is selected
     const fieldConfig = hasSelection ? getFieldConfig(selectedElement.type as FieldType) : null;
     const properties = hasSelection ? getFieldProperties(selectedElement.type as FieldType) : [];
     const groupedProperties = groupProperties(properties);
     const sortedGroups = sortGroups(Object.keys(groupedProperties));
     const Icon = fieldConfig?.icon;
 
-    // Count active rules for badge
-    const activeRulesCount = selectedElement?.visibilityRules?.filter(r => r.enabled).length ?? 0;
+    const handlePropertyChange = (key: string, value: unknown) => {
+        const activeStore = getActiveNodeStore();
+        if (activeStore && selectedElement) {
+            activeStore.getState().updateElementProperty(selectedElement.id, key, value);
+        }
+    };
+
+    if (!isCollapsed && !hasSelection) {
+        return null;
+    }
 
     return (
         <div
             className={`
-        bg-white border-l border-gray-200 h-full flex flex-col shrink-0 
-        transition-all duration-300 ease-in-out overflow-hidden
-        ${isCollapsed || !hasSelection ? 'w-12' : 'w-80'}
-      `}
+                bg-white border-l border-gray-200 h-full flex flex-col shrink-0 
+                transition-all duration-300 ease-in-out overflow-hidden
+                ${isCollapsed || !hasSelection ? 'w-12' : 'w-80'}
+            `}
         >
-            {/* Header */}
             <div className="p-3 border-b border-gray-100 flex items-center gap-2 shrink-0">
-                {/* Collapse toggle */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
                     className="p-1 hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 shrink-0"
@@ -48,7 +74,6 @@ export const PropertyPanel = () => {
                     {isCollapsed || !hasSelection ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
                 </button>
 
-                {/* Title - only show when expanded */}
                 {!isCollapsed && hasSelection && (
                     <div className="flex items-center gap-2 overflow-hidden">
                         {Icon && <Icon size={16} className="text-gray-500 shrink-0" />}
@@ -57,46 +82,61 @@ export const PropertyPanel = () => {
                 )}
             </div>
 
-            {/* Properties with Accordion - only show when expanded and has selection */}
-            {!isCollapsed && hasSelection && (
+            {!isCollapsed && hasSelection && selectedElement && (
                 <div className="flex-1 overflow-y-auto">
-                    <Accordion>
-                        {/* Standard property groups */}
-                        {sortedGroups.map((groupName, index) => (
-                            <AccordionItem
-                                key={groupName}
-                                title={groupName}
-                                defaultOpen={index === 0}
-                            >
-                                <div className="space-y-2">
-                                    {(groupedProperties[groupName] || []).map((prop) => (
-                                        <PropertyRow key={prop.key} config={prop} element={selectedElement} />
-                                    ))}
-                                </div>
-                            </AccordionItem>
-                        ))}
-
-                        {/* Visibility Rules section */}
-                        <AccordionItem
-                            title={`Visibility Rules${activeRulesCount > 0 ? ` (${activeRulesCount})` : ''}`}
-                            defaultOpen={false}
-                        >
-                            <RuleBuilder element={selectedElement} />
+                    {sortedGroups.map(group => (
+                        <AccordionItem key={group} title={group} defaultOpen>
+                            <div className="space-y-3">
+                                {groupedProperties[group]?.map(prop => (
+                                    <PropertyRow
+                                        key={prop.key}
+                                        config={prop}
+                                        element={selectedElement}
+                                        onPropertyChange={handlePropertyChange}
+                                    />
+                                ))}
+                            </div>
                         </AccordionItem>
-                    </Accordion>
+                    ))}
+
+                    <AccordionItem title="Visibility Rules">
+                        <RuleBuilder
+                            element={selectedElement as any}
+                            allElements={allElements as any}
+                            onUpdate={handlePropertyChange}
+                        />
+                    </AccordionItem>
                 </div>
             )}
+        </div>
+    );
+};
 
-            {/* Collapsed state message */}
-            {(isCollapsed || !hasSelection) && (
-                <div className="flex-1 flex items-center justify-center">
-                    <span
-                        className="text-xs text-gray-400 writing-mode-vertical transform rotate-180"
-                        style={{ writingMode: 'vertical-rl' }}
-                    >
-                        {hasSelection ? 'Properties' : 'Select element'}
-                    </span>
-                </div>
+const PropertyRow = ({
+    config,
+    element,
+    onPropertyChange
+}: {
+    config: PropertyConfig;
+    element: FormElement;
+    onPropertyChange: (key: string, value: unknown) => void;
+}) => {
+    const value = config.key in element
+        ? element[config.key as keyof FormElement]
+        : element.properties?.[config.key];
+
+    const handleChange = (newValue: unknown) => {
+        onPropertyChange(config.key, newValue);
+    };
+
+    return (
+        <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-gray-600">
+                {config.label}
+            </label>
+            <PropertyInput config={config} value={value} onChange={handleChange} />
+            {config.description && (
+                <p className="text-xs text-gray-400">{config.description}</p>
             )}
         </div>
     );
