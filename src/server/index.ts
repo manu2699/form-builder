@@ -1,19 +1,13 @@
-// Server Entry Point
 import { serve } from "bun";
 
-// Modules
 import { initDatabase } from "@/server/db";
 import { healthHandler, formsHandlers, formHandlers } from "@/server/routes";
 import { websocketHandler } from "@/server/ws";
 
-const index = process.env.NODE_ENV === 'production'
-  ? Bun.file('./dist/index.html')
-  : (await import('@/client/index.html')).default;
-
-// Initialize
 await initDatabase();
 
-// Server
+const isProduction = process.env.NODE_ENV === 'production';
+
 const server = serve({
   port: process.env.PORT || 3000,
   hostname: '0.0.0.0',
@@ -61,10 +55,20 @@ const server = serve({
     },
 
     // SPA fallback
-    "/*": index,
+    "/*": !isProduction ? (await import("@/client/index.html")).default : {
+      GET: async (req) => {
+        const url = new URL(req.url);
+        const filePath = `./dist${url.pathname}`;
+        const file = Bun.file(filePath);
+        if (await file.exists()) {
+          return new Response(file);
+        }
+        return new Response(Bun.file('./dist/index.html'));
+      },
+    },
   },
 
-  development: process.env.NODE_ENV !== "production" && {
+  development: !isProduction && {
     hmr: true,
   },
 
