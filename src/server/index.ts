@@ -1,4 +1,5 @@
 import { serve } from "bun";
+import { join, dirname } from "path";
 
 import { initDatabase } from "@/server/db";
 import { healthHandler, formsHandlers, formHandlers } from "@/server/routes";
@@ -7,6 +8,9 @@ import { websocketHandler } from "@/server/ws";
 await initDatabase();
 
 const isProduction = process.env.NODE_ENV === 'production';
+
+const projectRoot = dirname(dirname(import.meta.dir));
+const distPath = join(projectRoot, 'dist');
 
 const server = serve({
   port: process.env.PORT || 3000,
@@ -58,17 +62,17 @@ const server = serve({
     "/*": !isProduction ? (await import("@/client/index.html")).default : {
       GET: async (req) => {
         const url = new URL(req.url);
-        const filePath = `./dist${url.pathname}`;
+        const filePath = join(distPath, url.pathname);
         const file = Bun.file(filePath);
         if (await file.exists()) {
           return new Response(file);
         }
-        return new Response(Bun.file('./dist/index.html'));
+        return new Response(Bun.file(join(distPath, 'index.html')));
       },
     },
   },
 
-  development: !isProduction && {
+  development: process.env.NODE_ENV !== "production" && {
     hmr: true,
   },
 
@@ -76,4 +80,3 @@ const server = serve({
 });
 
 console.log(`🚀 Server running at ${server.url}`);
-
